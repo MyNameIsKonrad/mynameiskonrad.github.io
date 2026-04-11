@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Konrad</title>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital@0;1&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital@0;1&family=DM+Sans:wght@300;400&family=Press+Start+2P&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -31,11 +31,22 @@
     }
 
     .eyebrow {
-      font-size: 0.75rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: #888;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.5rem;
+      letter-spacing: 0.06em;
+      line-height: 1.8;
       margin-bottom: 1.5rem;
+      background: linear-gradient(90deg, #ff006e, #fb5607, #ffbe0b, #3a86ff, #8338ec, #ff006e);
+      background-size: 250% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: rainbow-shift 4s linear infinite;
+    }
+
+    @keyframes rainbow-shift {
+      from { background-position: 0% center; }
+      to   { background-position: 250% center; }
     }
 
     h1 {
@@ -94,7 +105,7 @@
 </head>
 <body>
   <main>
-    <p class="eyebrow">Personal site</p>
+    <p class="eyebrow">★ the rad in Kon•rad since '91 ★</p>
     <h1>Hi, I'm <em>Konrad.</em></h1>
     <div class="divider"></div>
     <p>I work in indie games publishing, and this is my small corner of the internet.</p>
