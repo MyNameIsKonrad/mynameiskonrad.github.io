@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -394,15 +395,13 @@ function renderChart(today, now) {
   // Now line
   const nowX = Math.max(XPAD, Math.min(W, xS(now)));
 
-  // Phase markers
-  const markers = today.flatMap(pill =>
-    MEDS[pill.type].phases.map(ph => {
-      const ts = pill.takenAt + ph.offsetHours * 3600000;
-      if (ts < win.start || ts > win.end) return '';
-      const x = xS(ts);
-      return `<line x1="${x}" y1="0" x2="${x}" y2="${CH}" stroke="${MEDS[pill.type].color}" stroke-width="1" stroke-opacity=".3" stroke-dasharray="2,4"/>`;
-    })
-  ).join('');
+  // Phase markers — only pill ingestion moments (offsetHours === 0)
+  const markers = today.map(pill => {
+    const ts = pill.takenAt; // only the moment of taking
+    if (ts < win.start || ts > win.end) return '';
+    const x = xS(ts);
+    return `<line x1="${x}" y1="0" x2="${x}" y2="${CH}" stroke="${MEDS[pill.type].color}" stroke-width="1" stroke-opacity=".3" stroke-dasharray="2,4"/>`;
+  }).join('');
 
   svg.innerHTML = `
     <defs>
@@ -427,13 +426,16 @@ function renderChart(today, now) {
       if (x < XPAD + 10 || x > W - 10) return '';
       return `<text x="${x}" y="${CH + 14}" font-family="'DM Mono',monospace" font-size="9" fill="#3a5070" text-anchor="middle">${fmt(ts)}</text>`;
     }).join('')}
+    <line id="chart-crosshair" x1="-999" y1="0" x2="-999" y2="${CH}"
+      stroke="rgba(220,232,245,0.25)" stroke-width="1"/>
     <rect x="${XPAD}" y="0" width="${CW}" height="${CH}" fill="transparent" id="chart-hit"/>
   `;
 
-  // Touch/mouse tooltip
-  const hit     = document.getElementById('chart-hit');
-  const tooltip = document.getElementById('chart-tooltip');
-  const container = document.getElementById('chart-container');
+  // Touch/mouse tooltip + crosshair
+  const hit      = document.getElementById('chart-hit');
+  const tooltip  = document.getElementById('chart-tooltip');
+  const crosshair = document.getElementById('chart-crosshair');
+  let hideTimer  = null;
 
   function showTooltip(clientX, clientY) {
     if (!chartData || !chartWin) return;
@@ -443,19 +445,39 @@ function renderChart(today, now) {
     const ts = chartWin.start + fracX * (chartWin.end - chartWin.start);
     const closest = chartData.reduce((best, p) =>
       Math.abs(p.ts - ts) < Math.abs(best.ts - ts) ? p : best);
+    // crosshair
+    const cx = XPAD + fracX * CW;
+    crosshair.setAttribute('x1', cx);
+    crosshair.setAttribute('x2', cx);
+    // tooltip
     document.getElementById('tt-time').textContent = fmt(closest.ts);
     document.getElementById('tt-val').textContent  = closest.total.toFixed(1);
-    const tLeft = Math.min(clientX - rect.left + 8, rect.width - 110);
+    const tLeft = Math.min(clientX - rect.left + 8, rect.width - 120);
     tooltip.style.left = tLeft + 'px';
-    tooltip.style.top  = (clientY - rect.top - 52) + 'px';
+    tooltip.style.top  = (clientY - rect.top - 60) + 'px';
     tooltip.style.display = 'block';
+    if (hideTimer) clearTimeout(hideTimer);
   }
 
-  hit.addEventListener('touchstart', e => { showTooltip(e.touches[0].clientX, e.touches[0].clientY); }, { passive: true });
-  hit.addEventListener('touchmove',  e => { showTooltip(e.touches[0].clientX, e.touches[0].clientY); e.preventDefault(); }, { passive: false });
-  hit.addEventListener('touchend',   () => { setTimeout(() => tooltip.style.display = 'none', 800); });
+  function hideTooltip(delay = 0) {
+    if (hideTimer) clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      tooltip.style.display = 'none';
+      crosshair.setAttribute('x1', '-999');
+      crosshair.setAttribute('x2', '-999');
+    }, delay);
+  }
+
+  hit.addEventListener('touchstart', e => {
+    showTooltip(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  hit.addEventListener('touchmove', e => {
+    showTooltip(e.touches[0].clientX, e.touches[0].clientY);
+    e.preventDefault();
+  }, { passive: false });
+  hit.addEventListener('touchend', () => hideTooltip(2500));
   hit.addEventListener('mousemove',  e => showTooltip(e.clientX, e.clientY));
-  hit.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+  hit.addEventListener('mouseleave', () => hideTooltip(0));
 }
 
 // ── Render ────────────────────────────────────────────────
@@ -582,5 +604,6 @@ pills = loadPills();
 render();
 setInterval(render, 30000);
 </script>
+
 </body>
 </html>
