@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>powerwash</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #06080b; overscroll-behavior: none; }
+  body { font: 500 13px -apple-system, system-ui, sans-serif; color: #fff; }
+
+  /* Canvas is positioned absolutely with letterboxing offsets set from JS.
+     touch-action stays none ON the canvas only — outside the canvas (HUD,
+     overlays, lil-gui) we want normal pointer behavior. */
+  #stage { position: absolute; touch-action: none; image-rendering: pixelated; }
+
+  /* HUD */
+  #hud {
+    display: none;
+    position: fixed; top: calc(12px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+    z-index: 5; gap: 14px; align-items: center;
+    background: rgba(10,14,20,0.88); padding: 8px 14px; border-radius: 4px;
+    border: 1px solid rgba(110,120,132,0.2);
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+  body.overlay-open #hud { opacity: 0; }
+  body.overlay-open #reset { opacity: 0; pointer-events: none; }
+  #hud .label { font-size: 11px; opacity: 0.7; letter-spacing: 0.04em; text-transform: uppercase; }
+  #hud .val { font-size: 13px; font-variant-numeric: tabular-nums; }
+  #waterBar {
+    width: 110px; height: 8px; border-radius: 4px;
+    background: rgba(255,255,255,0.12); overflow: hidden;
+  }
+  #waterFill {
+    height: 100%; width: 100%;
+    background: linear-gradient(90deg, #7cc4ff, #4ea4ff);
+    transition: width 0.05s linear;
+  }
+
+  /* Bottom-right control cluster (cross-platform — touch and desktop both
+     get visible buttons; keyboard/gamepad just shortcut to the same actions). */
+  .ctl-cluster { position: fixed; bottom: calc(14px + env(safe-area-inset-bottom)); right: 14px; z-index: 10; display: flex; gap: 6px; }
+  .ctl-cluster button {
+    background: rgba(10,14,20,0.88); color: rgba(255,255,255,0.7);
+    border: 1px solid rgba(110,120,132,0.25);
+    padding: 9px 16px; border-radius: 4px;
+    font: 500 12px -apple-system, system-ui, sans-serif;
+    letter-spacing: 0.04em; cursor: pointer;
+    transition: background 0.12s ease;
+  }
+  .ctl-cluster button:hover { background: rgba(20,28,38,0.95); color: #fff; }
+  .ctl-cluster button:active { background: rgba(30,40,52,0.98); }
+  body.overlay-open .ctl-cluster { opacity: 0; pointer-events: none; }
+
+  /* Controls hint — hidden on touch devices, shown on desktop */
+  #hint {
+    position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+    z-index: 5; font-size: 10px; color: rgba(255,255,255,0.3);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    pointer-events: none; white-space: nowrap;
+  }
+  body.overlay-open #hint { opacity: 0; }
+  @media (hover: none) and (pointer: coarse) { #hint { display: none; } }
+
+  /* FPS counter (debug) */
+  #fps {
+    position: fixed; bottom: calc(12px + env(safe-area-inset-bottom)); left: 12px; z-index: 5;
+    font-size: 11px; color: #9cf; opacity: 0.7;
+    background: rgba(0,0,0,0.4); padding: 4px 8px; border-radius: 6px;
+    font-variant-numeric: tabular-nums; display: none;
+  }
+  #fps.show { display: block; }
+
+  /* Compatibility shim: the older #reset id retains its style via the cluster
+     rule above; this block was deliberately removed when refactoring to a cluster. */
+
+  /* Pause overlay — tap anywhere to resume */
+  #pauseOverlay {
+    position: fixed; inset: 0; z-index: 15;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.5);
+    pointer-events: none;
+    cursor: pointer;
+  }
+  #pauseOverlay.show { display: flex; pointer-events: auto; }
+  #pauseOverlay .pill {
+    background: #0d1117; border: 1px solid rgba(110,120,132,0.25);
+    padding: 16px 28px; border-radius: 4px;
+    text-align: center; pointer-events: none;
+  }
+  #pauseOverlay .pill .pill-title {
+    font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: rgba(255,255,255,0.5); margin-bottom: 4px;
+  }
+  #pauseOverlay .pill .pill-sub {
+    font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+  }
+
+  /* Modal overlays (end screen, shop) */
+  .overlay {
+    position: fixed; inset: 0; z-index: 20;
+    display: none;
+    align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.65);
+  }
+  .overlay.show { display: flex; }
+  .panel {
+    background: #1b2028; border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 14px; padding: 22px 24px; min-width: 320px; max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .panel h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em; }
+  .panel .stats { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; margin: 10px 0 18px; }
+  .panel .stats .k { opacity: 0.65; font-size: 13px; }
+  .panel .stats .v { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .panel .verdict { font-size: 13px; opacity: 0.8; margin-bottom: 12px; }
+  .panel .row { display: flex; gap: 10px; margin-top: 14px; }
+  .panel button {
+    flex: 1; padding: 12px 16px; border-radius: 10px;
+    background: #4ea4ff; color: #07101c; border: 0; font: 600 14px -apple-system, system-ui, sans-serif;
+    cursor: pointer;
+  }
+  .panel button.secondary { background: rgba(255,255,255,0.1); color: #fff; }
+  .panel button:active { transform: translateY(1px); }
+  .panel button:hover { filter: brightness(1.07); }
+
+  .upgrade-list { display: flex; flex-direction: column; gap: 8px; }
+  .upgrade {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px; background: rgba(255,255,255,0.04); border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .upgrade .name { font-weight: 600; }
+  .upgrade .lvl { font-size: 11px; opacity: 0.6; letter-spacing: 0.04em; }
+  .upgrade .meta { display: flex; flex-direction: column; }
+  .upgrade button {
+    padding: 6px 12px; flex: 0 0 auto; border-radius: 8px; font-size: 12px;
+  }
+  .upgrade button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .currency-row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .currency { font-size: 18px; font-weight: 700; color: #ffd97a; }
+</style>
+  <script type="module" crossorigin src="/psx-powerwash/assets/index-By5EH_vv.js"></script>
+</head>
+<body>
+<canvas id="stage"></canvas>
+
+<div id="hud">
+  <div>
+    <div class="label">water</div>
+    <div id="waterBar"><div id="waterFill"></div></div>
+  </div>
+  <div>
+    <div class="label">clean</div>
+    <div class="val" id="cleanVal">0%</div>
+  </div>
+  <div>
+    <div class="label">time</div>
+    <div class="val" id="timeVal">0.0</div>
+  </div>
+</div>
+
+<div class="ctl-cluster">
+  <button id="pauseBtn" title="pause (Esc)">pause</button>
+  <button id="reset" title="restart (R)">restart · R</button>
+</div>
+<div id="fps">— fps</div>
+<div id="hint">drag to throw · WASD/arrows to thrust · esc to pause · R to restart</div>
+
+<div id="pauseOverlay">
+  <div class="pill">
+    <div class="pill-title">paused</div>
+    <div class="pill-sub">tap · esc · start</div>
+  </div>
+</div>
+
+<div id="endOverlay" class="overlay">
+  <div class="panel">
+    <h2 id="endTitle">clean!</h2>
+    <div class="verdict" id="endVerdict"></div>
+    <div class="stats">
+      <div class="k">time</div>      <div class="v" id="endTime">—</div>
+      <div class="k">% cleaned</div> <div class="v" id="endClean">—</div>
+      <div class="k">water left</div><div class="v" id="endWater">—</div>
+      <div class="k">efficiency</div><div class="v" id="endEff">—</div>
+      <div class="k">earned</div>    <div class="v" id="endEarned">—</div>
+    </div>
+    <div class="row">
+      <button id="endContinue">upgrades →</button>
+    </div>
+  </div>
+</div>
+
+<div id="shopOverlay" class="overlay">
+  <div class="panel">
+    <h2>upgrades</h2>
+    <div class="currency-row">
+      <div class="label">bubbles</div>
+      <div class="currency" id="shopBalance">0</div>
+    </div>
+    <div class="upgrade-list" id="upgradeList"></div>
+    <div class="row">
+      <button id="shopStart">start run</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
