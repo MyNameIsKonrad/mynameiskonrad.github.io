@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Medikinetics">
+<meta name="theme-color" content="#080d17">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<title>Medikinetics</title>
+<style>
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/dm-mono-400.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'DM Mono';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('fonts/dm-mono-500.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('fonts/space-grotesk-600.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('fonts/space-grotesk-600.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+:root {
+  --bg: #080d17; --surface: #0f1623; --border: #1a2235;
+  --muted: #2d3f57; --dim: #3a5070; --soft: #4a6080;
+  --text: #dce8f5; --ir: #5bb8f5; --cr: #9d7fd4; --sym: #d4ad68; --con: #e58fb8; --green: #4ecb8d;
+  --now: #ff6b6b; --clearing: #614f8a; --rising: #94b8d4; --feel: var(--text);
+  --toast-text: #8ba3be; --tooltip-bg: #0a1020;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+  --t-base:   .15s; --t-press: .08s; --t-toggle: .2s; --t-fill: .3s;
+  --ir-tint:     rgba(91,184,245,.12);
+  --green-tint:  rgba(78,203,141,.18);
+}
+html, body { height: 100%; background: var(--bg); color: var(--text);
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; overscroll-behavior: none; touch-action: manipulation; }
+#app { max-width: 440px; margin: 0 auto;
+  padding: calc(var(--safe-top) + 24px) 20px calc(var(--safe-bot) + 48px); }
+.mono { font-family: 'DM Mono', monospace; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+.header { margin-bottom: 24px; }
+.title { font-size: 20px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.sub { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--dim);
+  letter-spacing: .14em; text-transform: uppercase; margin-top: 3px; }
+/* Stats */
+.stats-row { display: flex; align-items: center; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 16px; padding: 24px 20px; margin-bottom: 28px; }
+.stat { flex: 1; }
+.stat-val { font-size: 40px; font-weight: 700; line-height: 1;
+  display: flex; align-items: baseline; gap: 2px; }
+.stat-val .unit { font-size: 13px; color: var(--muted); font-weight: 400; margin-left: 2px; }
+.stat-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--dim);
+  text-transform: uppercase; letter-spacing: .1em; margin-top: 6px; }
+.stat-divider { width: 1px; height: 52px; background: var(--border); margin: 0 20px; }
+/* Section */
+.section { margin-bottom: 24px; }
+.section-label { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--dim);
+  text-transform: uppercase; letter-spacing: .14em; margin-bottom: 12px; }
+/* Chart */
+.chart-wrap { background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 12px 8px; position: relative; }
+.chart-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.chart-est { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .1em; }
+#chart-svg { width: 100%; display: block; overflow: visible; }
+.chart-tooltip { position: absolute; background: var(--tooltip-bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 12px; pointer-events: none; display: none; z-index: 10;
+  min-width: 96px; text-align: center; white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45); }
+.chart-tooltip .tt-time { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--dim); }
+.chart-tooltip .tt-val { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--ir); margin-top: 2px; font-variant-numeric: tabular-nums; }
+.chart-tooltip .tt-unit { font-size: 10px; color: var(--dim); margin-left: 4px; }
+/* Dose buttons */
+.dose-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 8px; }
+.dose-btn { display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 14px 8px; background: transparent; border: 1.5px solid var(--muted); border-radius: 16px;
+  color: var(--text); cursor: pointer; touch-action: manipulation; transition: opacity var(--t-base), transform var(--t-base) ease-out; }
+.dose-btn.pressing, .dose-btn:active { transform: scale(0.91); transition: transform var(--t-press) ease-in; }
+.dose-btn.just-fired { opacity: .35; }
+.dose-btn--wide { grid-column: 1 / -1; }
+.dose-btn-name { font-size: 16px; font-weight: 700; letter-spacing: .04em; }
+.dose-btn-sub { font-family: 'DM Mono', monospace; font-size: 10px; opacity: .6; }
+/* Offset chips */
+.offset-row { display: flex; gap: 8px; flex-wrap: nowrap; }
+.offset-chip { flex: 1; font-family: 'DM Mono', monospace; font-size: 11px; padding: 4px 8px;
+  border-radius: 20px; border: 1px solid var(--border); background: transparent; text-align: center;
+  color: var(--dim); cursor: pointer; touch-action: manipulation; transition: border-color var(--t-base), background var(--t-base), color var(--t-base), transform var(--t-base) ease-out; }
+.offset-chip.active { border-color: var(--ir); background: var(--ir-tint); color: var(--ir); }
+.offset-chip.pressing, .offset-chip:active { transform: scale(0.90); transition: border-color var(--t-base), background var(--t-base), color var(--t-base), transform var(--t-press) ease-in; }
+.offset-chip-unset { opacity: .75; }
+.exact-time-chip { flex: 1.25; min-width: 0; height: auto; color-scheme: dark; -webkit-appearance: none; appearance: none; }
+.exact-time-chip::-webkit-calendar-picker-indicator { opacity: .65; filter: invert(69%) sepia(20%) saturate(787%) hue-rotate(176deg); }
+#dose-when { color: var(--ir); }
+/* Feel bar: one segmented scale, not enough → about right → too much (Decisions #48, #51); neutral like the dose buttons (Decision #7) */
+.feel-row { display: flex; margin-bottom: 8px; border: 1px solid var(--muted); border-radius: 12px; overflow: hidden; }
+.feel-chip { flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: 'DM Mono', monospace; font-size: 12px; padding: 12px 4px; white-space: nowrap;
+  background: transparent; border: none; color: var(--feel); cursor: pointer; touch-action: manipulation;
+  transition: opacity var(--t-base), background var(--t-base); }
+.feel-chip + .feel-chip { border-left: 1px solid var(--muted); }
+.feel-chip.pressing, .feel-chip:active { background: var(--border); transition: background var(--t-press); }
+.feel-chip.just-fired { opacity: .35; }
+.feel-chip:focus-visible { outline-offset: -3px; }
+.feel-icon { flex-shrink: 0; }
+/* Fed/fasted toggle switch on CR pill cards */
+.pill-card:has(.fed-toggle) .card-head { margin-bottom: 8px; }
+.fed-toggle { display: inline-flex; align-items: center; gap: 8px;
+  background: none; border: none; padding: 0;
+  cursor: pointer; touch-action: manipulation; margin-bottom: 8px;
+  transition: transform var(--t-base) ease-out; }
+.fed-toggle.pressing, .fed-toggle:active { transform: scale(0.95); transition: transform var(--t-press) ease-in; }
+.fed-lbl { font-family: 'DM Mono', monospace; font-size: 11px;
+  color: var(--muted); transition: color var(--t-base); }
+.fed-lbl--on { color: var(--soft); }
+.fed-track { width: 36px; height: 20px; border-radius: 10px;
+  background: var(--border); position: relative;
+  transition: background var(--t-toggle); flex-shrink: 0; }
+.fed-track--fed { background: var(--green-tint); }
+.fed-thumb { position: absolute; top: 2px; left: 2px;
+  width: 16px; height: 16px; border-radius: 8px;
+  background: var(--muted); transition: transform var(--t-toggle), background var(--t-toggle); }
+.fed-track--fed .fed-thumb { transform: translateX(16px); background: var(--green); }
+/* Card */
+.pill-card { background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px; margin-bottom: 12px; contain: layout style; }
+.card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.card-head-left { display: flex; align-items: baseline; gap: 8px; }
+.card-type { font-size: 15px; font-weight: 700; }
+.card-mg { font-size: 13px; color: var(--soft); }
+.card-time { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--dim); }
+/* Phase bar */
+.phase-row { margin-bottom: 8px; }
+.phase-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.phase-mg { font-size: 13px; font-weight: 600; }
+.phase-tag { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--dim); margin-left: 5px; }
+.phase-time { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--dim); }
+.track { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.fill-bar { height: 100%; border-radius: 3px; transform-origin: left center; transition: transform var(--t-fill) ease; }
+/* Log */
+.log-row { display: flex; align-items: center; gap: 8px;
+  padding: 12px 0; border-bottom: 1px solid var(--surface); contain: layout style; }
+.log-row.expired { opacity: .3; }
+.log-type { font-size: 13px; font-weight: 700; min-width: 36px; }
+.log-mg { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--soft); min-width: 53px; }
+.log-t { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--dim); flex: 1; }
+.log-status { font-family: 'DM Mono', monospace; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+/* 97px = the widest label ("about right"); with .log-mg's 53px every row's time starts at the same x */
+.log-feel { display: inline-flex; align-items: center; gap: 6px; min-width: 97px;
+  font-family: 'DM Mono', monospace; font-size: 12px; color: var(--feel); }
+/* Buttons */
+.x-btn { background: none; border: none; color: var(--muted); font-size: 20px;
+  line-height: 1; cursor: pointer; padding: 8px; margin: -8px; touch-action: manipulation;
+  transition: transform var(--t-base) ease-out; }
+.x-btn.pressing, .x-btn:active { transform: scale(0.80); transition: transform var(--t-press) ease-in; }
+/* Focus */
+:focus-visible { outline: 2px solid var(--ir); outline-offset: 2px; border-radius: 4px; }
+/* Empty */
+.empty { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted);
+  text-align: center; padding: 52px 0; }
+/* Undo toast */
+#undo-toast { position: fixed; bottom: 32px; left: 50%; transform: translateX(-50%);
+  background: var(--border); border: 1px solid var(--soft); border-radius: 12px;
+  padding: 12px 18px; display: none; align-items: center; gap: 14px;
+  font-family: 'DM Mono', monospace; font-size: 12px; color: var(--toast-text);
+  box-shadow: 0 4px 24px rgba(0,0,0,.5); white-space: nowrap; z-index: 100;
+  overflow: hidden; }
+#undo-toast.visible { display: flex; }
+#undo-toast.visible::after { content: ''; position: absolute; bottom: 0; left: 0;
+  width: 100%; height: 2px; background: var(--ir); border-radius: 0 0 12px 12px;
+  transform-origin: left;
+  animation: drain var(--undo-duration) linear forwards; }
+@keyframes drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+#undo-btn { background: none; border: none; color: var(--ir); font-family: 'DM Mono', monospace;
+  font-size: 12px; font-weight: 700; cursor: pointer; padding: 0; letter-spacing: .06em;
+  transition: transform var(--t-base) ease-out; }
+#undo-btn.pressing, #undo-btn:active { transform: scale(0.88); transition: transform var(--t-press) ease-in; }
+/* Data footer */
+.data-footer { display: flex; justify-content: space-between; align-items: center;
+  margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border); }
+.data-footer span { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .1em; }
+.footer-btns { display: flex; gap: 8px; }
+#export-btn, #import-btn, #history-more { background: none; border: 1px solid var(--border); border-radius: 20px;
+  color: var(--dim); font-family: 'DM Mono', monospace; font-size: 11px;
+  padding: 4px 12px; cursor: pointer; touch-action: manipulation; white-space: nowrap;
+  transition: transform var(--t-base) ease-out, color var(--t-base), border-color var(--t-base); }
+#dose-count { line-height: 1.6; }
+#export-btn.pressing, #export-btn:active, #import-btn.pressing, #import-btn:active,
+#history-more.pressing, #history-more:active { transform: scale(0.92); transition: transform var(--t-press) ease-in; }
+/* History */
+.hist-summary { background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+  padding: 16px; margin-bottom: 16px; }
+.hist-summary .section-label { margin-bottom: 10px; }
+.hist-table { width: 100%; border-collapse: collapse; font-family: 'DM Mono', monospace; font-size: 12px;
+  font-variant-numeric: tabular-nums; }
+.hist-table th { font-size: 10px; font-weight: 400; color: var(--dim); text-transform: uppercase;
+  letter-spacing: .08em; text-align: right; padding-bottom: 6px; }
+.hist-table td { text-align: right; padding: 4px 0; vertical-align: top; }
+.hist-table th:first-child, .hist-table td:first-child { text-align: left; }
+.hist-table .hist-n { display: block; font-size: 10px; color: var(--muted); margin-top: 1px; }
+.hist-axis { display: flex; justify-content: space-between; font-family: 'DM Mono', monospace;
+  font-size: 10px; color: var(--muted); margin-bottom: 2px; }
+.hist-day { padding: 10px 0 12px; border-bottom: 1px solid var(--surface); contain: layout style; }
+.hist-day-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.hist-date { font-size: 13px; font-weight: 700; }
+.hist-total { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--soft); }
+.hist-strip { width: 100%; display: block; overflow: visible; } /* marks near the baseline would clip */
+.hist-items { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px;
+  font-family: 'DM Mono', monospace; font-size: 11px; color: var(--dim); }
+.hist-item { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.hist-item .feel-icon { color: var(--feel); }
+.hist-gap { padding: 10px 0; border-bottom: 1px solid var(--surface);
+  font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+#history-more { display: block; margin: 16px auto 0; }
+/* Update banner */
+#update-banner { position: fixed; top: 0; left: 0; right: 0;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 10px 20px; padding-top: calc(env(safe-area-inset-top, 0px) + 10px);
+  display: none; align-items: center; justify-content: space-between;
+  font-family: 'DM Mono', monospace; font-size: 11px; color: var(--toast-text);
+  z-index: 200; }
+#update-banner.visible { display: flex; }
+#update-reload { background: none; border: 1px solid var(--ir); color: var(--ir);
+  font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 6px; cursor: pointer; touch-action: manipulation; }
+</style>
+</head>
+<body>
+<div id="update-banner">
+  <span>update available</span>
+  <button id="update-reload" onclick="location.reload()">RELOAD</button>
+</div>
+<div id="app">
+  <noscript>
+    <h1 style="font-size: 18px; margin-bottom: 12px; text-align: center;">Medikinetics needs JavaScript</h1>
+    <p style="color: #8ba3be; line-height: 1.5; text-align: center;">This app runs entirely in your browser and stores doses locally. Enable JavaScript to continue.</p>
+  </noscript>
+  <div class="header">
+    <div class="title">Medikinetics</div>
+    <!-- Static fallback shown until SW broadcasts VERSION; kept in sync with sw.js VERSION by version-stamp.yml. -->
+    <div class="sub"><span id="version-label" style="opacity:.4">20260926.0015</span></div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-val" style="color:var(--text)">
+        <span id="val-taken">0</span><span class="unit">mg</span>
+      </div>
+      <div class="stat-label">taken today</div>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <div class="stat-val" style="color:var(--ir)">
+        <span id="val-system">0.0</span><span class="unit">mg eq</span>
+      </div>
+      <div class="stat-label" id="label-system">in system</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="chart-header">
+      <div class="section-label">concentration curve</div>
+      <div class="chart-est">model estimate</div>
+    </div>
+    <div class="chart-wrap" id="chart-container">
+      <svg id="chart-svg" height="170" role="img" aria-label="Methylphenidate concentration curve"></svg>
+      <div class="chart-tooltip" id="chart-tooltip">
+        <div class="tt-time" id="tt-time"></div>
+        <div class="tt-val"><span id="tt-val">0.0</span><span class="tt-unit">mg eq</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">log<span id="dose-when"></span></div>
+    <div class="dose-grid" id="dose-grid"></div>
+    <div class="feel-row" id="feel-row" role="group" aria-label="How the dose feels"></div>
+    <div class="offset-row" id="offset-row"></div>
+  </div>
+
+  <div class="section" id="section-progress" style="display:none">
+    <div class="section-label">in progress</div>
+    <div id="cards-container"></div>
+  </div>
+
+  <div class="section" id="section-log" style="display:none">
+    <div class="section-label">log (24h)</div>
+    <div id="log-container"></div>
+  </div>
+
+  <div class="empty" id="empty-state">nothing logged yet</div>
+
+  <div class="section" id="section-history" style="display:none">
+    <div class="section-label">history</div>
+    <div id="history-summary"></div>
+    <div class="hist-axis" aria-hidden="true"><span>00</span><span>06</span><span>12</span><span>18</span><span>24</span></div>
+    <div id="history-days"></div>
+    <button id="history-more" onclick="showMoreHistory()">show more days</button>
+  </div>
+
+  <div class="data-footer" id="data-footer">
+    <span id="dose-count"></span>
+    <div class="footer-btns">
+      <button id="import-btn" onclick="document.getElementById('import-input').click()">import</button>
+      <button id="export-btn" onclick="exportData()">export json</button>
+    </div>
+    <input type="file" id="import-input" accept="application/json,.json" hidden>
+  </div>
+</div>
+
+<div id="undo-toast">
+  <span id="undo-msg" aria-live="polite"></span>
+  <button id="undo-btn" onclick="undoRemove()">UNDO</button>
+</div>
+
+<script>
+// ── Med definitions ──────────────────────────────────────
+// Concerta (OROS methylphenidate): a 22% immediate-release overcoat, then an osmotic core
+// that releases the other 78% at a slow-fast-slow rate over ~12h. Modelled as a bolus plus
+// three zero-order (constant-rate) windows; each released amount absorbs at ka=2.0.
+// Fractions from the FDA biopharmaceutics review's in-vivo release estimate (Fig 9.1)
+// and label §11.1. Gives Tmax 7.2h (label: 6.8 ± 1.8h, adults, 18mg) and a 1h value at
+// 55% of peak (label Fig 1: ~57%). Food has no meaningful effect (label), so no fed mode.
+// `windowHours` is the PK release window; `durationHours` mirrors it for display.
+const concerta = mg => ({
+  label: 'Concerta', shortLabel: 'CON', sublabel: `${mg}mg`, totalMg: mg, color: '#e58fb8',
+  phases: [{ offsetHours: 0, mg: mg * 0.22, durationHours: 1, ka: 2.0 },
+           { offsetHours: 1, mg: mg * 0.20, durationHours: 3, windowHours: 3, ka: 2.0 },
+           { offsetHours: 4, mg: mg * 0.36, durationHours: 3, windowHours: 3, ka: 2.0 },
+           { offsetHours: 7, mg: mg * 0.22, durationHours: 5, windowHours: 5, ka: 2.0 }],
+});
+
+// MEDS keys are storage keys: loadPills drops doses whose type is missing, so a med that is
+// no longer taken stays here with `retired: true` (no dose button, history still renders).
+const MEDS = {
+  CON72: concerta(72),
+  CON36: concerta(36),
+  CON18: concerta(18),
+  IRH: { label: 'IR',   sublabel: '5mg',           totalMg: 5,  color: '#5bb8f5', retired: true,
+         phases: [{ offsetHours: 0, mg: 5,  durationHours: 4, ka: 2.0 }] },
+  IR:  { label: 'IR',   sublabel: '10mg',          totalMg: 10, color: '#5bb8f5', retired: true,
+         phases: [{ offsetHours: 0, mg: 10, durationHours: 4, ka: 2.0 }] },
+  CR:  { label: 'CR',   sublabel: '20mg',          totalMg: 20, color: '#9d7fd4', retired: true,
+         phases:       [{ offsetHours: 0, mg: 10, durationHours: 4, ka: 2.0 },
+                        { offsetHours: 4, mg: 10, durationHours: 4, ka: 0.7 }],
+         // ka=1.0: judgment call — ER beads release early without food but bead matrix
+         // still slows absorption vs pure IR. Yields Tmax ~1.6h, consistent with
+         // Haessler 2008 "steady absorption / single Tmax" under fasted conditions.
+         fastedPhases: [{ offsetHours: 0, mg: 20, durationHours: 6, ka: 1.0 }] },
+  // Symkinet MR ChPL: ~50% immediate release and ~50% released after ~4h.
+  // It reports no overall bioavailability difference with/without food, but
+  // not enough timing data for a separate food phase model. Delayed ka=0.7
+  // is an app-level approximation, not a measured Symkinet constant.
+  SYMR20: { label: 'Symkinet MR', shortLabel: 'SYM', sublabel: '20mg', totalMg: 20, color: '#d4ad68', retired: true,
+            phases: [{ offsetHours: 0, mg: 10, durationHours: 4, ka: 2.0 },
+                     { offsetHours: 4, mg: 10, durationHours: 4, ka: 0.7 }] },
+};
+
+const OFFSETS = [
+  { label: '-30m', ms: 30 * 60000 },
+  { label: '-1h',  ms: 1 * 3600000 },
+  { label: '-2h',  ms: 2 * 3600000 },
+  { label: '-3h',  ms: 3 * 3600000 },
+  { label: 'now',  ms: 0 },
+];
+const SCRUB_IDX = -1;
+
+// How a dose feels, as the owner logs it: one scale from not enough to too much (Decision #47).
+// FEELS keys are storage keys like MEDS keys: loadFeels drops a check-in whose `feel` is not a key
+// here, so never remove or rename one; retire it instead (`retired: true`: no button, past check-ins
+// still load and draw). Non-retired entries are the bar's buttons, left to right. `shape` is the
+// mark on the chart. `countsAfterMs`: in "how long it lasts", a check-in this soon after its dose
+// does not count ("not enough" in the first hours is waiting for the dose to kick in).
+// Labels are display only (Decision #51): the keys `more` / `good` / `intense` predate them.
+const FEELS = {
+  more:    { label: 'not enough',  shape: 'up', countsAfterMs: 2 * 3600000 },
+  good:    { label: 'about right', shape: 'dot' },
+  intense: { label: 'too much',    shape: 'down' },
+  // The first scale, retired 2026-09-23
+  on:      { label: 'on',     shape: 'dot',  retired: true },
+  fading:  { label: 'fading', shape: 'half', retired: true },
+  off:     { label: 'off',    shape: 'ring', retired: true },
+};
+const ACTIVE_FEELS = Object.keys(FEELS).filter(k => !FEELS[k].retired);
+
+// ── PK model ─────────────────────────────────────────────
+// NORM makes "mg eq" IR-peak-equivalent: 1 mg of IR (ka = KA_REF) peaks at exactly 1.0.
+// One shared NORM keeps every med on the same scale; a slower ka correctly peaks lower and
+// later for the same total exposure (AUC). Do not normalize per ka (see ARCHITECTURE.md).
+const KA_REF = 2.0, KE = 0.347;
+const _tm = Math.log(KA_REF / KE) / (KA_REF - KE);
+const _cm = (KA_REF / (KA_REF - KE)) * (Math.exp(-KE * _tm) - Math.exp(-KA_REF * _tm));
+const NORM = 1 / _cm;
+const CLEARING_THRESHOLD = 0.1; // fraction of a dose's own peak below which it is considered cleared
+const UNDO_DURATION_MS   = 8000; // undo toast lifetime — single source of truth; CSS reads --undo-duration
+
+function phaseConc(mg, tH, ka) {
+  if (tH < 0) return 0;
+  if (Math.abs(ka - KE) < 0.001) {
+    return Math.max(0, mg * NORM * KE * tH * Math.exp(-KE * tH));
+  }
+  return Math.max(0, mg * NORM * (ka / (ka - KE)) * (Math.exp(-KE * tH) - Math.exp(-ka * tH)));
+}
+
+// Zero-order input: `mg` released at a constant rate over [0, windowH] hours after the phase
+// start, each slice absorbed first-order at `ka`. This is phaseConc integrated over the
+// window; I(c) = ∫ e^(-c(tH-τ)) dτ over τ in [0, min(tH, windowH)].
+function zeroOrderConc(mg, tH, windowH, ka) {
+  if (tH <= 0) return 0;
+  const u = Math.min(tH, windowH);
+  if (Math.abs(ka - KE) < 0.001) {
+    const s1 = tH - u, s2 = tH;
+    return Math.max(0, mg * NORM / windowH *
+      ((s1 + 1 / KE) * Math.exp(-KE * s1) - (s2 + 1 / KE) * Math.exp(-KE * s2)));
+  }
+  const I = c => (Math.exp(-c * (tH - u)) - Math.exp(-c * tH)) / c;
+  return Math.max(0, mg * NORM / windowH * (ka / (ka - KE)) * (I(KE) - I(ka)));
+}
+
+// Every concentration path goes through this: bolus phases vs zero-order release windows.
+function phaseConcFor(ph, tH) {
+  return ph.windowHours ? zeroOrderConc(ph.mg, tH, ph.windowHours, ph.ka) : phaseConc(ph.mg, tH, ph.ka);
+}
+
+const hasFedToggle = pill => !!MEDS[pill.type]?.fastedPhases;
+
+function phasesFor(pill) {
+  const med = MEDS[pill.type];
+  return (hasFedToggle(pill) && !pill.fed) ? med.fastedPhases : med.phases;
+}
+
+function concAtTime(pills, ts) {
+  let total = 0;
+  for (const p of pills)
+    for (const ph of phasesFor(p))
+      total += phaseConcFor(ph, (ts - (p.takenAt + ph.offsetHours * 3600000)) / 3600000);
+  return total;
+}
+
+// A dose's own peak, per type and food state, sampled once. Clearing is measured against it so
+// every med clears at the same relative level: 10% of totalMg is 10% of peak for IR but 25% for
+// Concerta, whose peak in mg eq is far below its mg.
+const _peakCache = new Map();
+function peakFor(pill) {
+  const key = `${pill.type}:${pill.fed ? 1 : 0}`;
+  if (!_peakCache.has(key)) {
+    const probe = { type: pill.type, fed: pill.fed, takenAt: 0 };
+    let peak = 0;
+    for (let ts = 0; ts <= 30 * 3600000; ts += 60000) peak = Math.max(peak, concAtTime([probe], ts));
+    _peakCache.set(key, peak);
+  }
+  return _peakCache.get(key);
+}
+const clearingLevel = pill => peakFor(pill) * CLEARING_THRESHOLD;
+
+let _curveCache = null;
+function buildCurve(pills, wStart, wEnd) {
+  const key = `${wStart}|${wEnd}|${pills.map(p => `${p.id}:${p.type}:${p.takenAt}:${p.fed ? 1 : 0}`).join(',')}`;
+  if (_curveCache?.key === key) return _curveCache.result;
+
+  const pts = [];
+  for (let ts = wStart; ts <= wEnd; ts += 10 * 60000) {
+    let total = 0;
+    const perPill = {};
+    for (const p of pills) {
+      let pt = 0;
+      for (const ph of phasesFor(p))
+        pt += phaseConcFor(ph, (ts - (p.takenAt + ph.offsetHours * 3600000)) / 3600000);
+      perPill[p.id] = Math.round(pt * 10) / 10;
+      total += pt;
+    }
+    pts.push({ ts, total: Math.round(total * 10) / 10, ...perPill });
+  }
+  _curveCache = { key, result: pts };
+  return pts;
+}
+
+function closestPoint(data, ts) {
+  let lo = 0, hi = data.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (data[mid].ts < ts) lo = mid + 1; else hi = mid;
+  }
+  if (lo > 0 && Math.abs(data[lo - 1].ts - ts) <= Math.abs(data[lo].ts - ts)) return data[lo - 1];
+  return data[lo];
+}
+
+function getCurveWindow(pills, now) {
+  if (!pills.length) return { start: now - 1800000, end: now + 8 * 3600000 };
+  const sod = startOfLocalDay();
+  const todayDoses = pills.filter(p => p.takenAt >= sod);
+  const earliest = todayDoses.length
+    ? Math.min(...todayDoses.map(p => p.takenAt))
+    : now;
+  const latest = Math.max(...pills.map(p => {
+    const lp = phasesFor(p).at(-1);
+    return p.takenAt + (lp.offsetHours + lp.durationHours) * 3600000;
+  }));
+  return {
+    start: Math.min(earliest - 45 * 60000, now - 60 * 60000),
+    end:   Math.max(latest + 4 * 3600000, now + 90 * 60000),
+  };
+}
+
+// ── Helpers ───────────────────────────────────────────────
+const RISING_LOOKAHEAD_MS = 5 * 60000; // 5-minute forward window used to classify concentration as rising
+const fmt = ts => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+function startOfLocalDay() { const d = new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); }
+function timeInputValue(ts) {
+  const d = new Date(ts);
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+function timestampForTimeInput(val) {
+  const [h, m] = val.split(':').map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  // Manual future times are almost always missed past doses. Step back a calendar day, not 24 h,
+  // so the wall-clock time survives a daylight-saving change overnight.
+  if (d.getTime() > Date.now()) { d.setDate(d.getDate() - 1); d.setHours(h, m, 0, 0); }
+  return d.getTime();
+}
+const phaseStart = (ph, t) => t + ph.offsetHours * 3600000;
+const phaseEnd   = (ph, t) => phaseStart(ph, t) + ph.durationHours * 3600000;
+
+function phaseStatus(ph, takenAt, now) {
+  const s = phaseStart(ph, takenAt), e = phaseEnd(ph, takenAt);
+  return now < s ? 'pending' : now < e ? 'active' : 'done';
+}
+function phasePct(ph, takenAt, now) {
+  const s = phaseStart(ph, takenAt), e = phaseEnd(ph, takenAt);
+  if (now < s) return 0; if (now >= e) return 100;
+  return ((now - s) / (e - s)) * 100;
+}
+function durStr(ms) {
+  if (ms <= 0) return null;
+  const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+function pillIsVisible(pill, now) {
+  const lp = phasesFor(pill).at(-1);
+  return now < phaseEnd(lp, pill.takenAt) || concAtTime([pill], now) >= clearingLevel(pill);
+}
+function isAllDone(pill, now) {
+  return phasesFor(pill).every(ph => phaseStatus(ph, pill.takenAt, now) === 'done');
+}
+function last24h(now) {
+  return pills.filter(p => p.takenAt > now - 24 * 3600000);
+}
+// A check-in is about the most recent dose at or before it, within 24 h; its "after" time counts from there.
+function doseBefore(ts) {
+  let best = null;
+  for (const p of pills)
+    if (p.takenAt <= ts && p.takenAt > ts - 24 * 3600000 && (!best || p.takenAt > best.takenAt)) best = p;
+  return best;
+}
+const afterDose = f => { const d = doseBefore(f.at); return d ? (durStr(f.at - d.takenAt) ?? '0m') : null; };
+// Check-ins are told apart by shape, not hue (issue #35), from FEELS[feel].shape. The scale's marks
+// point the way the owner would move the curve: up = not enough, dot = about right, down = too much.
+// Retired feels keep their marks (half = fading, ring = off). `ink` draws the mark; `paper` is the
+// halo and hollow fill ('none' lets the background through).
+function feelShape(feel, cx, cy, r, ink, paper) {
+  const shape = FEELS[feel].shape;
+  // r + 0.75 so the filled mark is as big as the rings (whose stroke adds 0.75); its stroke is a halo
+  if (shape === 'dot') return `<circle cx="${cx}" cy="${cy}" r="${r + 0.75}" style="fill:${ink};stroke:${paper}" stroke-width="1.5"/>`;
+  if (shape === 'up' || shape === 'down') {
+    // Equilateral triangle, its box centered on (cx, cy): h is half its height, w half its base
+    const h = 0.75 * (r + 1.5), w = 0.866 * (r + 1.5), tip = shape === 'up' ? -h : h;
+    const p = (x, y) => `${Math.round(x * 10) / 10},${Math.round(y * 10) / 10}`;
+    return `<polygon points="${p(cx, cy + tip)} ${p(cx - w, cy - tip)} ${p(cx + w, cy - tip)}" style="fill:${ink};stroke:${paper}" stroke-width="1.5" stroke-linejoin="round"/>`;
+  }
+  const ring = `<circle cx="${cx}" cy="${cy}" r="${r}" style="fill:${paper};stroke:${ink}" stroke-width="1.5"/>`;
+  return shape === 'half' ? ring + `<path d="M${cx},${cy - r}A${r},${r} 0 0 0 ${cx},${cy + r}Z" style="fill:${ink}"/>` : ring;
+}
+const feelIcon = feel =>
+  `<svg class="feel-icon" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">${feelShape(feel, 6, 6, 4.5, 'currentColor', 'none')}</svg>`;
+function updateStats(today, now) {
+  const taken  = today.filter(p => p.takenAt >= startOfLocalDay()).reduce((s, p) => s + MEDS[p.type].totalMg, 0);
+  const inSys  = concAtTime(today, now);
+  const rising = concAtTime(today, now + RISING_LOOKAHEAD_MS) > inSys;
+  document.getElementById('val-taken').textContent  = taken;
+  document.getElementById('val-system').textContent = inSys.toFixed(1);
+  document.getElementById('label-system').innerHTML = rising
+    ? '<span style="color:var(--rising)">↑ rising</span>'
+    : 'in system';
+}
+
+// ── State ─────────────────────────────────────────────────
+let pills          = [];
+let feels          = []; // check-ins { id, at, feel }, newest first; stored apart from doses
+let offsetIdx = OFFSETS.length - 1; // default: 'now'
+let scrubTime = null; // { ts, label } — set by chart scrub or manual entry
+let _timeInputActive = false; // true while user is inside the native time picker
+let undoItem  = null;
+let undoTimer = null;
+let hideTimer = null;
+
+// Shared chart state — written by renderChart, read by tooltip handlers (avoids closure re-allocation each tick)
+const _chart = { data: [], win: null, allPills: [], CW: 0, XPAD: 28, CH: 140, maxConc: 5,
+  el: { svg: null, crosshair: null, dotLayer: null, tooltip: null, ttTime: null, ttVal: null, timeInput: null } };
+let _chartListenersReady = false;
+let _chartScrubbing      = false;
+let _lastSvgKey          = null;
+
+function loadPills() {
+  try {
+    const raw = localStorage.getItem('medikinetics-v1');
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    // Full history is kept forever — rendering filters to last24h; storage cost is ~60 bytes/dose.
+    return parsed.filter(p => p && typeof p.takenAt === 'number' && p.takenAt > 0 && typeof p.type === 'string' && MEDS[p.type]);
+  } catch (e) { console.error('MedKit: load failed', e); return []; }
+}
+
+function savePills() {
+  try { localStorage.setItem('medikinetics-v1', JSON.stringify(pills)); }
+  catch (e) { console.error('MedKit: save failed', e); }
+}
+
+// Check-ins get their own key: loadPills keeps only MEDS-typed entries, so sharing
+// 'medikinetics-v1' would drop them on the next load and save. Kept forever, like doses.
+const FEEL_STORE = 'medikinetics-feel-v1';
+function loadFeels() {
+  try {
+    const raw = localStorage.getItem(FEEL_STORE);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(f => f && typeof f.at === 'number' && f.at > 0 && typeof f.feel === 'string' && Object.hasOwn(FEELS, f.feel));
+  } catch (e) { console.error('MedKit: feel load failed', e); return []; }
+}
+
+function saveFeels() {
+  try { localStorage.setItem(FEEL_STORE, JSON.stringify(feels)); }
+  catch (e) { console.error('MedKit: feel save failed', e); }
+}
+
+// The when-row (offset chips or the exact-time chip) times the next dose or check-in.
+// Nothing is ever in the future: typed times resolve to the past and scrubs fill only past times.
+function selectedTime(now) {
+  const rawAt = offsetIdx === SCRUB_IDX
+    ? (scrubTime?.ts ?? now)
+    : now - OFFSETS[offsetIdx].ms;
+  return Math.min(now, rawAt);
+}
+
+// After any log: a 400 ms disable guards against double taps, then the when-row resets to 'now'
+function afterLog() {
+  document.querySelectorAll('.dose-btn, .feel-chip').forEach(b => {
+    b.disabled = true;
+    b.classList.add('just-fired');
+    setTimeout(() => { b.disabled = false; b.classList.remove('just-fired'); }, 400);
+  });
+  offsetIdx = OFFSETS.length - 1;
+  scrubTime = null;
+}
+
+function logPill(type) {
+  const now = Date.now();
+  pills = [{ id: now, type, takenAt: selectedTime(now), ...(hasFedToggle({ type }) ? { fed: false } : {}) }, ...pills];
+  savePills();
+  afterLog();
+  render();
+}
+
+function logFeel(feel) {
+  const now = Date.now();
+  feels = [{ id: now, at: selectedTime(now), feel }, ...feels].sort((a, b) => b.at - a.at);
+  saveFeels();
+  afterLog();
+  render();
+}
+
+function toggleFed(id) {
+  const pill = pills.find(p => p.id === id);
+  if (!pill) return;
+  pill.fed = !pill.fed;
+  savePills();
+  const now = Date.now();
+
+  // Toggle classes directly so the CSS slide transition plays (full render destroys the element)
+  const card = document.querySelector(`.pill-card[data-id="${id}"]`);
+  if (card) {
+    card.querySelector('.fed-toggle')?.setAttribute('aria-checked', pill.fed);
+    card.querySelector('.fed-track')?.classList.toggle('fed-track--fed', pill.fed);
+    const lbls = card.querySelectorAll('.fed-lbl');
+    lbls[0]?.classList.toggle('fed-lbl--on', !pill.fed);
+    lbls[1]?.classList.toggle('fed-lbl--on', pill.fed);
+    updatePillCardBody(pill, now);
+  }
+
+  const today = last24h(now);
+  updateStats(today, now);
+  renderChart(today, now);
+  renderHistory(); // a separate section, so the card's toggle transition still plays
+}
+
+function removePill(id) {
+  const pill = pills.find(p => p.id === id);
+  if (!pill) return;
+  pills = pills.filter(p => p.id !== id);
+  savePills();
+  stageUndo({ kind: 'dose', item: pill }, `${MEDS[pill.type].label} ${MEDS[pill.type].totalMg}mg deleted`);
+  render();
+}
+
+function removeFeel(id) {
+  const feel = feels.find(f => f.id === id);
+  if (!feel) return;
+  feels = feels.filter(f => f.id !== id);
+  saveFeels();
+  stageUndo({ kind: 'feel', item: feel }, `"${FEELS[feel.feel].label}" check-in deleted`);
+  render();
+}
+
+// Single-level undo for either record kind; a second delete replaces the pending one
+function stageUndo(entry, msg) {
+  undoItem = entry;
+  if (undoTimer) clearTimeout(undoTimer);
+  undoTimer = setTimeout(() => { undoItem = null; hideUndo(); }, UNDO_DURATION_MS);
+  showUndo(msg);
+}
+
+function undoRemove() {
+  if (!undoItem) return;
+  clearTimeout(undoTimer);
+  const { kind, item } = undoItem;
+  if (kind === 'feel') {
+    feels = [item, ...feels].sort((a, b) => b.at - a.at);
+    saveFeels();
+  } else {
+    pills = [item, ...pills].sort((a, b) => b.takenAt - a.takenAt);
+    savePills();
+  }
+  undoItem = null;
+  hideUndo();
+  render();
+}
+
+async function exportData() {
+  const payload = {
+    app: 'medikinetics',
+    exportedAt: new Date().toISOString(),
+    doses: [...pills].sort((a, b) => a.takenAt - b.takenAt).map(p => ({
+      type: p.type,
+      mg: MEDS[p.type].totalMg,
+      takenAt: p.takenAt,
+      time: new Date(p.takenAt).toISOString(),
+      ...(hasFedToggle(p) ? { fed: !!p.fed } : {}),
+    })),
+    // Added in 2.0; `doses` keeps its original shape (Decision #24)
+    checkins: [...feels].sort((a, b) => a.at - b.at).map(f => ({
+      feel: f.feel,
+      at: f.at,
+      time: new Date(f.at).toISOString(),
+    })),
+  };
+  const name = `medikinetics-${new Date().toISOString().slice(0, 10)}.json`;
+  const file = new File([JSON.stringify(payload, null, 2)], name, { type: 'application/json' });
+  // iOS Safari: share sheet (AirDrop / Save to Files). Elsewhere: plain download.
+  if (navigator.canShare?.({ files: [file] })) {
+    try { await navigator.share({ files: [file] }); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// Import reads an export file back in. It only ever adds: a dose already here (same type and
+// time) or a check-in already here (same feel and time) is skipped, and so is anything with an
+// unknown type or a time in the future. Nothing stored is changed or removed.
+function importData(data) {
+  if (!Array.isArray(data?.doses)) { alert('That file is not a Medikinetics export.'); return; }
+  const now = Date.now();
+  // Exports carry no ids, so records match by content. Repeats are counted, not collapsed: two
+  // identical doses in the file against one stored adds one, and a second import adds nothing.
+  const tally = (list, key) => list.reduce((m, x) => m.set(key(x), (m.get(key(x)) ?? 0) + 1), new Map());
+  const unmatched = (have, k) => { if (have.get(k) > 0) { have.set(k, have.get(k) - 1); return false; } return true; };
+  // New ids start at the record's time and step past any id already taken
+  const freeId = (ids, start) => { let id = start; while (ids.has(id)) id++; ids.add(id); return id; };
+
+  const haveDose = tally(pills, p => `${p.type}|${p.takenAt}`);
+  const ids = new Set(pills.map(p => p.id));
+  const newDoses = [];
+  for (const d of data.doses) {
+    if (!d || typeof d.type !== 'string' || !Object.hasOwn(MEDS, d.type)) continue;
+    if (typeof d.takenAt !== 'number' || !(d.takenAt > 0) || d.takenAt > now) continue;
+    if (!unmatched(haveDose, `${d.type}|${d.takenAt}`)) continue;
+    newDoses.push({ id: freeId(ids, d.takenAt), type: d.type, takenAt: d.takenAt, ...(hasFedToggle(d) ? { fed: d.fed === true } : {}) });
+  }
+  const haveFeel = tally(feels, f => `${f.feel}|${f.at}`);
+  const feelIds = new Set(feels.map(f => f.id));
+  const newFeels = [];
+  for (const c of Array.isArray(data.checkins) ? data.checkins : []) {
+    if (!c || typeof c.feel !== 'string' || !Object.hasOwn(FEELS, c.feel)) continue;
+    if (typeof c.at !== 'number' || !(c.at > 0) || c.at > now) continue;
+    if (!unmatched(haveFeel, `${c.feel}|${c.at}`)) continue;
+    newFeels.push({ id: freeId(feelIds, c.at), at: c.at, feel: c.feel });
+  }
+  if (!newDoses.length && !newFeels.length) { alert('Nothing new in this file: everything in it is already here.'); return; }
+  const count = (n, one) => `${n} ${one}${n === 1 ? '' : 's'}`;
+  if (!confirm(`Add ${count(newDoses.length, 'dose')} and ${count(newFeels.length, 'check-in')} from this file? Nothing already here changes.`)) return;
+  // A pending undo could re-add a record this import has just brought back, so it goes
+  if (undoItem) { clearTimeout(undoTimer); undoItem = null; hideUndo(); }
+  pills = [...pills, ...newDoses].sort((a, b) => b.takenAt - a.takenAt);
+  feels = [...feels, ...newFeels].sort((a, b) => b.at - a.at);
+  savePills();
+  saveFeels();
+  render();
+}
+
+document.getElementById('import-input').addEventListener('change', async e => {
+  const file = e.target.files?.[0];
+  e.target.value = ''; // so picking the same file again still fires 'change'
+  if (!file) return;
+  let data;
+  try { data = JSON.parse(await file.text()); }
+  catch { alert('That file is not a Medikinetics export.'); return; }
+  importData(data);
+});
+
+function showUndo(msg) {
+  document.getElementById('undo-msg').textContent = msg;
+  document.getElementById('undo-toast').classList.add('visible');
+}
+function hideUndo() {
+  document.getElementById('undo-toast').classList.remove('visible');
+}
+
+// ── Chart tooltip handlers (module-level, attached once) ──
+function _showTooltip(clientX, clientY) {
+  const { data, win, allPills, CW, XPAD, CH, maxConc, el } = _chart;
+  if (!data.length || !win || !el.svg) return;
+  const yS = v => CH - (v / (maxConc * 1.2)) * CH;
+  const rect = el.svg.getBoundingClientRect();
+  const relX = clientX - rect.left - XPAD;
+  const fracX = Math.max(0, Math.min(1, relX / CW));
+  const ts = win.start + fracX * (win.end - win.start);
+  const closest = closestPoint(data, ts);
+  const cx = XPAD + fracX * CW;
+  el.crosshair?.setAttribute('x1', cx);
+  el.crosshair?.setAttribute('x2', cx);
+  // Only a past point fills the time chip; scrubbing ahead just reads the projected level
+  if (closest.ts <= Date.now()) {
+    scrubTime = { ts: closest.ts, label: timeInputValue(closest.ts) };
+    if (el.timeInput) {
+      el.timeInput.value = scrubTime.label;
+      el.timeInput.classList.remove('offset-chip-unset');
+    }
+    updateDoseWhen();
+  }
+  if (el.dotLayer) {
+    el.dotLayer.innerHTML = allPills.map(pill => {
+      const v = closest[pill.id] || 0;
+      return `<circle cx="${cx}" cy="${yS(v)}" r="3" fill="${MEDS[pill.type].color}" stroke="var(--bg)" stroke-width="1.5"/>`;
+    }).join('') +
+    `<circle cx="${cx}" cy="${yS(closest.total)}" r="4" fill="none" stroke="${MEDS.IR.color}" stroke-width="1.5"/>`;
+  }
+  el.ttTime.textContent = fmt(closest.ts);
+  el.ttVal.textContent  = closest.total.toFixed(1);
+  const TOOLTIP_Y_OFFSET = 90;
+  const ttW = el.tooltip.offsetWidth || 96;
+  const rawLeft = clientX - rect.left - ttW / 2;
+  const tLeft = Math.max(4, Math.min(rawLeft, rect.width - ttW - 4));
+  el.tooltip.style.left = tLeft + 'px';
+  el.tooltip.style.top  = Math.max(4, clientY - rect.top - TOOLTIP_Y_OFFSET) + 'px';
+  el.tooltip.style.display = 'block';
+  if (hideTimer) clearTimeout(hideTimer);
+}
+
+function _hideTooltip(delay = 0) {
+  if (hideTimer) clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
+    const { el } = _chart;
+    el.tooltip.style.display = 'none';
+    el.crosshair?.setAttribute('x1', '-999');
+    el.crosshair?.setAttribute('x2', '-999');
+    if (el.dotLayer) el.dotLayer.innerHTML = '';
+  }, delay);
+}
+
+function _attachChartHandlers() {
+  if (_chartListenersReady) return;
+  _chartListenersReady = true;
+  const container = document.getElementById('chart-container');
+  container.addEventListener('touchstart', e => {
+    if (e.target.closest('#chart-hit')) {
+      _chartScrubbing = true;
+      _showTooltip(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: true });
+  container.addEventListener('touchmove', e => {
+    if (!_chartScrubbing) return;
+    _showTooltip(e.touches[0].clientX, e.touches[0].clientY);
+    e.preventDefault();
+  }, { passive: false });
+  container.addEventListener('touchend', () => { _chartScrubbing = false; _hideTooltip(2500); });
+  container.addEventListener('mousemove',  e => _showTooltip(e.clientX, e.clientY));
+  container.addEventListener('mouseleave', () => _hideTooltip(0));
+}
+
+// ── Chart ─────────────────────────────────────────────────
+function toPolygon(pts, baseY) {
+  return [`${pts[0].x},${baseY}`, ...pts.map(p => `${p.x},${p.y}`), `${pts.at(-1).x},${baseY}`].join(' ');
+}
+
+function renderChart(today, now) {
+  const svg    = document.getElementById('chart-svg');
+  const W      = svg.clientWidth || 380;
+  const CH     = 140; // curve height
+  const XPAD   = 28;  // left padding for y-axis labels
+  const BPAD   = 20;  // bottom for x-axis labels
+  const H      = CH + BPAD;
+  svg.setAttribute('height', H);
+
+  const allPills = today;
+  const win  = getCurveWindow(allPills, now);
+  const data = buildCurve(allPills, win.start, win.end);
+
+  const CW = W - XPAD;
+  const xS = ts => XPAD + (ts - win.start) / (win.end - win.start) * CW;
+  const maxConc = Math.max(...data.map(d => d.total), 5);
+  const yS = v  => CH - (v / (maxConc * 1.2)) * CH;
+
+  const xTicks = [];
+  const winDur = win.end - win.start;
+  const step = winDur > 16 * 3600000 ? 4 * 3600000 : winDur > 8 * 3600000 ? 2 * 3600000 : 3600000;
+  const tStart = Math.ceil(win.start / step) * step;
+  for (let t = tStart; t <= win.end; t += step) xTicks.push(t);
+
+  const yTicks = [0, Math.round(maxConc * 0.5), Math.round(maxConc)];
+
+  const pillFills = allPills.map(pill => {
+    const pts = data.map(d => ({ x: xS(d.ts), y: yS(d[pill.id] || 0) }));
+    return `<polygon points="${toPolygon(pts, CH)}" fill="${MEDS[pill.type].color}" fill-opacity="0.1"/>`;
+  }).join('');
+
+  const totalPts = data.map(d => ({ x: xS(d.ts), y: yS(d.total) }));
+  const linePts  = totalPts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ');
+  const totalLinesSVG = `
+    <polygon points="${toPolygon(totalPts, CH)}" fill="url(#tg)"/>
+    <path d="${linePts}" fill="none" stroke="${MEDS.IR.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+
+  const nowX = Math.max(XPAD, Math.min(W, xS(now)));
+  const feelMarks = feels.filter(f => f.at >= win.start && f.at <= win.end);
+
+  // Skip SVG rebuild when nothing has changed (curve cached + same width + now marker same pixel + same check-ins)
+  const svgKey = `${_curveCache.key}|${W}|${Math.round(nowX)}|${feelMarks.map(f => `${f.id}:${f.at}:${f.feel}`).join(',')}`;
+  if (svgKey === _lastSvgKey) {
+    Object.assign(_chart, { data, win, allPills, CW, XPAD, CH: 140, maxConc });
+    return;
+  }
+  _lastSvgKey = svgKey;
+
+  // Dose markers
+  const markers = allPills.map(pill => {
+    const ts = pill.takenAt;
+    if (ts < win.start || ts > win.end) return '';
+    const x = xS(ts);
+    return `<line x1="${x}" y1="0" x2="${x}" y2="${CH}" stroke="${MEDS[pill.type].color}" stroke-width="1" stroke-opacity=".3" stroke-dasharray="2,4"/>`;
+  }).join('');
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="tg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${MEDS.IR.color}" stop-opacity=".28"/>
+        <stop offset="100%" stop-color="${MEDS.IR.color}" stop-opacity=".02"/>
+      </linearGradient>
+    </defs>
+    ${yTicks.map(v => `
+      <text x="${XPAD - 4}" y="${yS(v) + 3}" font-family="'DM Mono',monospace" font-size="10"
+        style="fill:var(--dim)" text-anchor="end">${v}</text>
+      <line x1="${XPAD}" y1="${yS(v)}" x2="${W}" y2="${yS(v)}" stroke="#1a2235" stroke-width="${v === 0 ? 1 : 0.5}"/>
+    `).join('')}
+    ${pillFills}
+    ${totalLinesSVG}
+    ${markers}
+    <line x1="${nowX}" y1="0" x2="${nowX}" y2="${CH}" style="stroke:var(--now)" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="${Math.min(nowX + 4, W - 28)}" y="12" font-family="'DM Mono',monospace" font-size="10" style="fill:var(--now)">now</text>
+    ${feelMarks.map(f => feelShape(f.feel, xS(f.at), yS(concAtTime(allPills, f.at)), 4.5, 'var(--feel)', 'var(--surface)')).join('')}
+    ${xTicks.map(ts => {
+      const x = xS(ts);
+      if (x < XPAD + 10 || x > W - 10) return '';
+      return `<text x="${x}" y="${CH + 14}" font-family="'DM Mono',monospace" font-size="10" style="fill:var(--dim)" text-anchor="middle">${fmt(ts)}</text>`;
+    }).join('')}
+    <g id="dot-layer"></g>
+    <line id="chart-crosshair" x1="-999" y1="0" x2="-999" y2="${CH}"
+      stroke="rgba(220,232,245,0.25)" stroke-width="1"/>
+    <rect x="${XPAD}" y="0" width="${CW}" height="${CH}" fill="transparent" id="chart-hit"/>
+  `;
+
+  Object.assign(_chart, { data, win, allPills, CW, XPAD, CH: 140, maxConc });
+  // Refresh SVG-internal element refs (invalidated by innerHTML replacement above)
+  _chart.el.crosshair = document.getElementById('chart-crosshair');
+  _chart.el.dotLayer  = document.getElementById('dot-layer');
+  _attachChartHandlers();
+}
+
+// ── Render ────────────────────────────────────────────────
+function render() {
+  const now   = Date.now();
+  const today = last24h(now);
+
+  updateStats(today, now);
+  renderChart(today, now);
+
+  // Dose buttons (static, only build once)
+  const dg = document.getElementById('dose-grid');
+  if (!dg.children.length) {
+    const active = Object.entries(MEDS).filter(([, def]) => !def.retired);
+    active.forEach(([type, def], i) => {
+      const btn = document.createElement('button');
+      // Odd count: the first (main) dose spans the full row instead of stranding the last one
+      btn.className = i === 0 && active.length % 2 ? 'dose-btn dose-btn--wide' : 'dose-btn';
+      btn.innerHTML = `<span class="dose-btn-name">${def.label}</span><span class="dose-btn-sub">${def.sublabel}</span>`;
+      btn.setAttribute('aria-label', `Log ${def.label} ${def.totalMg} milligrams`);
+      btn.onclick = () => logPill(type);
+      dg.appendChild(btn);
+    });
+  }
+
+  // Feel bar (static, only build once): the non-retired scale, left to right, timed by the same when-row as the doses
+  const fr = document.getElementById('feel-row');
+  if (!fr.children.length) {
+    fr.innerHTML = ACTIVE_FEELS.map(key =>
+      `<button class="feel-chip" onclick="logFeel('${key}')" aria-label="Log how it feels: ${FEELS[key].label}">${feelIcon(key)}${FEELS[key].label}</button>`
+    ).join('');
+  }
+
+  // Offset chips — skip rebuild while user is in the time picker to avoid destroying focus mid-entry
+  if (!_timeInputActive && document.activeElement?.id !== 'manual-time-input') {
+    const or = document.getElementById('offset-row');
+    const scrubLabel = scrubTime ? scrubTime.label : '--:--';
+    or.innerHTML =
+      `<input type="time" id="manual-time-input" class="offset-chip exact-time-chip ${offsetIdx === SCRUB_IDX ? 'active' : ''} ${!scrubTime ? 'offset-chip-unset' : ''}" value="${scrubTime ? scrubLabel : ''}" aria-label="Exact dose time">` +
+      OFFSETS.map((o, i) => `<button class="offset-chip ${i === offsetIdx ? 'active' : ''}" onclick="setOffset(${i})">${o.label}</button>`).join('');
+    // Refresh cached ref — element recreated by innerHTML above
+    _chart.el.timeInput = document.getElementById('manual-time-input');
+  }
+  updateDoseWhen();
+
+  // In progress
+  const inProgress = today.filter(p => pillIsVisible(p, now));
+  const secP = document.getElementById('section-progress');
+  const cc   = document.getElementById('cards-container');
+  if (inProgress.length) {
+    secP.style.display = '';
+    cc.innerHTML = inProgress.map(p => pillCardHTML(p, now)).join('');
+  } else {
+    secP.style.display = 'none';
+  }
+
+  // Log — doses and check-ins from the last 24 h, newest first
+  const secL = document.getElementById('section-log');
+  const lc   = document.getElementById('log-container');
+  const todayFeels = feels.filter(f => f.at > now - 24 * 3600000);
+  if (today.length || todayFeels.length) {
+    secL.style.display = '';
+    lc.innerHTML = [
+      ...today.map(p => ({ ts: p.takenAt, html: logRowHTML(p, now) })),
+      ...todayFeels.map(f => ({ ts: f.at, html: feelRowHTML(f) })),
+    ].sort((a, b) => b.ts - a.ts).map(r => r.html).join('');
+  } else {
+    secL.style.display = 'none';
+  }
+
+  const empty = document.getElementById('empty-state');
+  empty.style.display = today.length || todayFeels.length ? 'none' : '';
+  empty.textContent = pills.length || feels.length ? 'nothing in the last 24h' : 'nothing logged yet';
+
+  renderHistory();
+
+  // Data footer — full history count (not just 24h). Always shown: import is how an empty install gets its history back.
+  const plural = (n, one) => `${n} ${one}${n === 1 ? '' : 's'}`;
+  document.getElementById('dose-count').innerHTML = pills.length || feels.length
+    ? `${plural(pills.length, 'dose')} stored${feels.length ? `<br>${plural(feels.length, 'check-in')}` : ''}`
+    : 'nothing stored';
+  document.getElementById('export-btn').style.display = pills.length || feels.length ? '' : 'none';
+}
+
+// While the exact-time chip is selected, the "log" label names the day the dose or check-in lands
+// on: a typed time later than now means yesterday, which the chip itself cannot show.
+function updateDoseWhen() {
+  const el = document.getElementById('dose-when');
+  if (offsetIdx !== SCRUB_IDX || !scrubTime) { el.textContent = ''; return; }
+  const day = scrubTime.ts < startOfLocalDay() ? 'yesterday' : 'today';
+  el.textContent = ` · ${day} ${fmt(scrubTime.ts)}`;
+}
+
+function setOffset(i) {
+  _timeInputActive = false;
+  offsetIdx = i;
+  render();
+}
+
+function selectExactTimeChip() {
+  _timeInputActive = true;
+  offsetIdx = SCRUB_IDX;
+  const input = document.getElementById('manual-time-input');
+  if (input && !input.value) {
+    input.value = timeInputValue(Date.now());
+  }
+  if (input && input.value && !scrubTime) {
+    scrubTime = { ts: timestampForTimeInput(input.value), label: input.value };
+  }
+  document.querySelectorAll('#offset-row .offset-chip').forEach(btn => {
+    btn.classList.toggle('active', btn.id === 'manual-time-input');
+  });
+  updateDoseWhen();
+}
+
+function pillCardBodyHTML(pill, now) {
+  const def     = MEDS[pill.type];
+  const phases  = phasesFor(pill);
+  const allDone = isAllDone(pill, now);
+
+  if (allDone) {
+    const conc      = concAtTime([pill], now);
+    const threshold = clearingLevel(pill);
+    const minsLeft  = conc > threshold ? Math.round((Math.log(conc / threshold) / KE) * 60) : 0;
+    const timeStr   = durStr(minsLeft * 60000) ?? '—';
+    return `
+      <div class="phase-row">
+        <div class="phase-top">
+          <span class="phase-mg" style="color:var(--soft)">clearing · ${conc.toFixed(1)} mg eq</span>
+          <span class="phase-time">${timeStr} left</span>
+        </div>
+      </div>`;
+  }
+
+  return phases.map((ph, i) => {
+    const st  = phaseStatus(ph, pill.takenAt, now);
+    const pct = phasePct(ph, pill.takenAt, now);
+    const left  = durStr(phaseEnd(ph, pill.takenAt) - now);
+    const until = durStr(phaseStart(ph, pill.takenAt) - now);
+    const color  = st === 'active' ? def.color : st === 'pending' ? 'var(--soft)' : 'var(--muted)';
+    const fillBg = st === 'active' ? def.color : 'var(--border)';
+    const tag  = i > 0 ? `<span class="phase-tag">+${ph.offsetHours}h release</span>` : '';
+    const time = st === 'active' && left   ? `${left} left`
+               : st === 'pending' && until ? `in ${until}` : 'done';
+    return `
+      <div class="phase-row">
+        <div class="phase-top">
+          <span class="phase-mg" style="color:${color}">${Math.round(ph.mg)} mg${tag}</span>
+          <span class="phase-time">${time}</span>
+        </div>
+        <div class="track"><div class="fill-bar" style="transform:scaleX(${((100-pct)/100).toFixed(4)});background:${fillBg}"></div></div>
+      </div>`;
+  }).join('');
+}
+
+function updatePillCardBody(pill, now) {
+  const card = document.querySelector(`.pill-card[data-id="${pill.id}"]`);
+  const body = card?.querySelector('.pill-body');
+  if (body) body.innerHTML = pillCardBodyHTML(pill, now);
+}
+
+function pillCardHTML(pill, now) {
+  const def = MEDS[pill.type];
+  return `
+    <div class="pill-card" data-id="${pill.id}">
+      <div class="card-head">
+        <div class="card-head-left">
+          <span class="card-type" style="color:${def.color}">${def.label}</span>
+          <span class="card-mg">${def.totalMg} mg</span>
+          <span class="card-time">${fmt(pill.takenAt)}</span>
+        </div>
+        <button class="x-btn" onclick="removePill(${pill.id})" aria-label="Remove ${def.label} ${def.totalMg}mg dose">×</button>
+      </div>
+      ${hasFedToggle(pill) ? `
+      <button class="fed-toggle" role="switch" aria-checked="${pill.fed}" onclick="toggleFed(${pill.id})">
+        <span class="fed-lbl${!pill.fed ? ' fed-lbl--on' : ''}">fasted</span>
+        <span class="fed-track${pill.fed ? ' fed-track--fed' : ''}"><span class="fed-thumb"></span></span>
+        <span class="fed-lbl${pill.fed ? ' fed-lbl--on' : ''}">food</span>
+      </button>` : ''}
+      <div class="pill-body">${pillCardBodyHTML(pill, now)}</div>
+    </div>`;
+}
+
+function logRowHTML(pill, now) {
+  const def      = MEDS[pill.type];
+  const typeLabel = def.shortLabel
+    ? `<span aria-hidden="true">${def.shortLabel}</span><span class="sr-only">${def.label}</span>`
+    : def.label;
+  const conc     = concAtTime([pill], now);
+  const visible  = pillIsVisible(pill, now);
+  const rising   = visible && concAtTime([pill], now + RISING_LOOKAHEAD_MS) > conc;
+  const clearing = visible && isAllDone(pill, now);
+  const st = !visible ? 'done' : rising ? '↑ rising' : clearing ? 'clearing' : 'active';
+  const sc = !visible ? 'var(--muted)' : rising ? 'var(--rising)' : clearing ? 'var(--clearing)' : 'var(--green)';
+  return `
+    <div class="log-row ${visible ? '' : 'expired'}">
+      <span class="log-type" style="color:${def.color}">${typeLabel}</span>
+      <span class="log-mg">${def.totalMg} mg</span>
+      <span class="log-t">${fmt(pill.takenAt)}</span>
+      <span class="log-status" style="color:${sc}">${st}</span>
+      <button class="x-btn" onclick="removePill(${pill.id})" aria-label="Remove ${def.label} ${def.totalMg}mg dose">×</button>
+    </div>`;
+}
+
+function feelRowHTML(f) {
+  const label = FEELS[f.feel].label;
+  const after = afterDose(f);
+  return `
+    <div class="log-row">
+      <span class="log-feel">${feelIcon(f.feel)}${label}</span>
+      <span class="log-t">${fmt(f.at)}</span>
+      <span class="log-status" style="color:var(--dim)">${after ? `${after} after dose` : ''}</span>
+      <button class="x-btn" onclick="removeFeel(${f.id})" aria-label="Remove ${label} check-in">×</button>
+    </div>`;
+}
+
+// ── History ───────────────────────────────────────────────
+// Every stored day, newest first: the model's curve for the day on a shared 00–24 axis and one
+// shared scale (so days compare), the doses, and the check-ins with their time after the dose.
+// Rebuilt only when the data, the day, the width or the days shown change, not on the 30 s tick.
+const HISTORY_FIRST = 7;  // days shown before "show more"
+const HISTORY_STEP  = 30; // days each "show more" adds
+const HIST_H = 36, HIST_SAMPLE_MS = 15 * 60000;
+let _historyDays = HISTORY_FIRST;
+let _historyKey  = null;
+let _dayCurves   = { key: null, byDay: new Map(), max: 5 };
+
+const dayOf   = ts => { const d = new Date(ts); d.setHours(0, 0, 0, 0); return d.getTime(); };
+const addDays = (ts, n) => { const d = new Date(ts); d.setDate(d.getDate() + n); return d.getTime(); };
+// "Mon 22 Sep" — spelled out here because locale formats differ ("Sept", "pon., 22 wrz")
+const fmtDay  = ts => { const d = new Date(ts);
+  return `${'Sun Mon Tue Wed Thu Fri Sat'.split(' ')[d.getDay()]} ${d.getDate()} ${'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec'.split(' ')[d.getMonth()]}`; };
+
+function pushTo(map, key, item) { (map.get(key) ?? map.set(key, []).get(key)).push(item); }
+
+// Each day's curve includes doses from the 24 h before it, so a late dose's tail carries over.
+// All days are computed (not just those shown) so the shared scale does not jump on "show more".
+function dayCurves(doseKey) {
+  const today = startOfLocalDay();
+  const key = `${today}|${doseKey}`; // the day is in the key so a new day gets its curve at midnight
+  if (_dayCurves.key === key) return _dayCurves;
+  const byDay = new Map();
+  let max = 5;
+  const sorted = [...pills].sort((a, b) => a.takenAt - b.takenAt);
+  for (let sod = sorted.length ? dayOf(sorted[0].takenAt) : today + 1; sod <= today; sod = addDays(sod, 1)) {
+    const eod = addDays(sod, 1);
+    const src = sorted.filter(p => p.takenAt > sod - 86400000 && p.takenAt < eod);
+    if (!src.length) continue;
+    const pts = [];
+    for (let ts = sod; ts <= eod; ts += HIST_SAMPLE_MS) {
+      const v = concAtTime(src, ts);
+      pts.push({ ts, v });
+      if (v > max) max = v;
+    }
+    byDay.set(sod, { pts, src });
+  }
+  _dayCurves = { key, byDay, max };
+  return _dayCurves;
+}
+
+function histStripSVG(sod, curve, doses, dayFeels, max, W) {
+  const eod = addDays(sod, 1);
+  const base = HIST_H - 1;
+  const r1 = n => Math.round(n * 10) / 10;
+  // x is local clock time, so every strip matches the 00–24 axis, 23- and 25-hour DST days included
+  const clockMin = ts => ts >= eod ? 1440 : (d => d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60)(new Date(ts));
+  const xS = ts => r1(clockMin(ts) / 1440 * W);
+  const yS = v  => r1(base - (v / max) * (HIST_H - 8));
+  const grid = [6, 12, 18].map(h => {
+    const x = r1(h / 24 * W);
+    return `<line x1="${x}" y1="0" x2="${x}" y2="${base}" style="stroke:var(--surface)" stroke-width="1"/>`;
+  }).join('');
+  let shape = '';
+  if (curve) {
+    // The clock repeats an hour when DST ends; its second pass is skipped so the line never runs backward
+    let last = -1;
+    const pts = [];
+    for (const p of curve.pts) {
+      const m = clockMin(p.ts);
+      if (m <= last) continue;
+      last = m;
+      pts.push(`${r1(m / 1440 * W)},${yS(p.v)}`);
+    }
+    shape = `<polygon points="0,${base} ${pts.join(' ')} ${W},${base}" fill="${MEDS.IR.color}" fill-opacity=".1"/>` +
+      `<polyline points="${pts.join(' ')}" fill="none" stroke="${MEDS.IR.color}" stroke-width="1.5" stroke-linejoin="round"/>`;
+  }
+  const ticks = doses.map(p =>
+    `<line x1="${xS(p.takenAt)}" y1="${base - 6}" x2="${xS(p.takenAt)}" y2="${base}" stroke="${MEDS[p.type].color}" stroke-width="2"/>`).join('');
+  const marks = dayFeels.map(f =>
+    feelShape(f.feel, xS(f.at), yS(curve ? concAtTime(curve.src, f.at) : 0), 3.5, 'var(--feel)', 'var(--bg)')).join('');
+  return `<svg class="hist-strip" width="${W}" height="${HIST_H}" aria-hidden="true">
+    <line x1="0" y1="${base}" x2="${W}" y2="${base}" style="stroke:var(--border)" stroke-width="1"/>${grid}${shape}${ticks}${marks}</svg>`;
+}
+
+function histDayHTML(sod, today, doses, dayFeels, curves, W) {
+  const label = sod === today ? 'Today' : sod === addDays(today, -1) ? 'Yesterday' : fmtDay(sod);
+  const total = doses.reduce((s, p) => s + MEDS[p.type].totalMg, 0);
+  const items = [
+    ...doses.map(p => {
+      const def = MEDS[p.type];
+      return { ts: p.takenAt, html: `<span class="hist-item"><span style="color:${def.color};font-weight:600">${def.shortLabel ?? def.label} ${def.totalMg}</span>${fmt(p.takenAt)}</span>` };
+    }),
+    ...dayFeels.map(f => {
+      const after = afterDose(f);
+      return { ts: f.at, html: `<span class="hist-item">${feelIcon(f.feel)}${FEELS[f.feel].label} ${fmt(f.at)}${after ? ` · ${after}` : ''}</span>` };
+    }),
+  ].sort((a, b) => a.ts - b.ts).map(i => i.html).join('');
+  return `
+    <div class="hist-day">
+      <div class="hist-day-head">
+        <span class="hist-date">${label}</span>
+        <span class="hist-total">${total ? `${total} mg` : ''}</span>
+      </div>
+      ${histStripSVG(sod, curves.byDay.get(sod), doses, dayFeels, curves.max, W)}
+      <div class="hist-items">${items}</div>
+    </div>`;
+}
+
+// "How long it lasts": for each day with a dose of a current (non-retired) med, the first check-in
+// of each current feel after that day's dose (past its `countsAfterMs`), measured from the most recent dose. Days are grouped by that
+// day's current-med total, so a step-up to a new strength gets its own row. Medians, with the
+// number of days behind each. Hidden until there is at least one such check-in.
+function lastsSummaryHTML(dosesByDay) {
+  const first = new Map(); // dose day → { feel: ms after dose } for the first check-in of each kind
+  for (const f of [...feels].sort((a, b) => a.at - b.at)) {
+    const d = doseBefore(f.at);
+    if (!d || MEDS[d.type].retired) continue; // a check-in after a retired dose is about that dose
+    if (FEELS[f.feel].retired) continue;       // retired feels still draw, but only the current scale counts
+    if (f.at - d.takenAt < (FEELS[f.feel].countsAfterMs ?? 0)) continue;
+    const rec = first.get(dayOf(d.takenAt)) ?? {};
+    if (rec[f.feel] == null) rec[f.feel] = f.at - d.takenAt;
+    first.set(dayOf(d.takenAt), rec);
+  }
+  const groups = new Map(); // day total mg → { days, [feel]: [ms, …] }
+  for (const [day, doses] of dosesByDay) {
+    const current = doses.filter(p => !MEDS[p.type].retired);
+    if (!current.length) continue;
+    const total = current.reduce((s, p) => s + MEDS[p.type].totalMg, 0);
+    const g = groups.get(total) ?? { days: 0, ...Object.fromEntries(ACTIVE_FEELS.map(k => [k, []])) };
+    g.days++;
+    const rec = first.get(day) ?? {};
+    for (const k of ACTIVE_FEELS) if (rec[k] != null) g[k].push(rec[k]);
+    groups.set(total, g);
+  }
+  if (![...groups.values()].some(g => ACTIVE_FEELS.some(k => g[k].length))) return '';
+  const median = xs => { const s = [...xs].sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+  const days = n => `${n} day${n === 1 ? '' : 's'}`;
+  const rows = [...groups.entries()].sort((a, b) => a[0] - b[0]).map(([mg, g]) => `
+    <tr>
+      <td>${mg} mg<span class="hist-n">${days(g.days)}</span></td>
+      ${ACTIVE_FEELS.map(k => g[k].length
+        ? `<td>${durStr(Math.round(median(g[k]) / 60000) * 60000) ?? '0m'}<span class="hist-n">${days(g[k].length)}</span></td>`
+        : `<td style="color:var(--muted)">—</td>`).join('')}
+    </tr>`).join('');
+  return `
+    <div class="hist-summary">
+      <div class="section-label">how long it lasts · median</div>
+      <table class="hist-table">
+        <thead><tr><th></th>${ACTIVE_FEELS.map(k => `<th>${FEELS[k].label}</th>`).join('')}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+}
+
+function renderHistory() {
+  const sec = document.getElementById('section-history');
+  if (!pills.length && !feels.length) { sec.style.display = 'none'; _historyKey = null; return; }
+  sec.style.display = '';
+  const daysEl = document.getElementById('history-days');
+  const W = daysEl.clientWidth || 380;
+  const today = startOfLocalDay();
+  const doseKey = pills.map(p => `${p.id}:${p.type}:${p.takenAt}:${p.fed ? 1 : 0}`).join(',');
+  const key = `${today}|${_historyDays}|${W}|${doseKey}|${feels.map(f => `${f.id}:${f.at}:${f.feel}`).join(',')}`;
+  if (key === _historyKey) return;
+  _historyKey = key;
+
+  const curves = dayCurves(doseKey);
+  const dosesByDay = new Map(), feelsByDay = new Map();
+  for (const p of [...pills].sort((a, b) => a.takenAt - b.takenAt)) pushTo(dosesByDay, dayOf(p.takenAt), p);
+  for (const f of [...feels].sort((a, b) => a.at - b.at)) pushTo(feelsByDay, dayOf(f.at), f);
+  const earliest = Math.min(...dosesByDay.keys(), ...feelsByDay.keys());
+
+  // Newest first; a run of days with nothing logged collapses into one line
+  let html = '', gap = null, sod = today;
+  const flushGap = () => {
+    if (!gap) return;
+    const name = ts => ts === today ? 'Today' : fmtDay(ts);
+    html += `<div class="hist-gap">${gap.from === gap.to ? name(gap.from) : `${name(gap.from)} – ${name(gap.to)}`} · nothing logged</div>`;
+    gap = null;
+  };
+  for (let i = 0; i < _historyDays && sod >= earliest; i++, sod = addDays(sod, -1)) {
+    const doses = dosesByDay.get(sod) ?? [], dayFeels = feelsByDay.get(sod) ?? [];
+    if (!doses.length && !dayFeels.length) { gap = gap ? { ...gap, from: sod } : { from: sod, to: sod }; continue; }
+    flushGap();
+    html += histDayHTML(sod, today, doses, dayFeels, curves, W);
+  }
+  flushGap();
+  daysEl.innerHTML = html;
+  document.getElementById('history-summary').innerHTML = lastsSummaryHTML(dosesByDay);
+  document.getElementById('history-more').style.display = sod >= earliest ? '' : 'none';
+}
+
+function showMoreHistory() {
+  _historyDays += HISTORY_STEP;
+  renderHistory();
+}
+
+// ── Init ──────────────────────────────────────────────────
+document.documentElement.style.setProperty('--undo-duration', `${UNDO_DURATION_MS / 1000}s`);
+pills = loadPills();
+feels = loadFeels();
+// Cache stable (non-SVG) element refs once — SVG-internal refs are refreshed in renderChart
+_chart.el.tooltip   = document.getElementById('chart-tooltip');
+_chart.el.ttTime    = document.getElementById('tt-time');
+_chart.el.ttVal     = document.getElementById('tt-val');
+_chart.el.timeInput = document.getElementById('manual-time-input');
+_chart.el.svg       = document.getElementById('chart-svg');
+render();
+let _renderInterval = setInterval(render, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    clearInterval(_renderInterval);
+  } else {
+    render();
+    _renderInterval = setInterval(render, 30000);
+  }
+});
+
+// Rotation / window resize — redraw the chart at the new width without waiting for the 30s tick
+let _resizeTimer = null;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(render, 150);
+});
+
+document.addEventListener('focusin', e => {
+  if (e.target.id === 'manual-time-input') selectExactTimeChip();
+});
+document.addEventListener('focusout', e => {
+  if (e.target.id === 'manual-time-input') {
+    setTimeout(() => { _timeInputActive = false; }, 300);
+  }
+});
+document.addEventListener('click', e => {
+  if (e.target.id === 'manual-time-input') selectExactTimeChip();
+});
+document.addEventListener('change', e => {
+  if (e.target.id !== 'manual-time-input') return;
+  const val = e.target.value; // "HH:MM"
+  if (!val) return;
+  scrubTime = { ts: timestampForTimeInput(val), label: val };
+  offsetIdx = SCRUB_IDX;
+  _timeInputActive = true;
+  render();
+});
+
+// ── Press feedback (iOS :active workaround) ───────────────
+(function() {
+  const SEL = '.dose-btn, .feel-chip, .offset-chip, .fed-toggle, .x-btn, #undo-btn, #export-btn, #import-btn, #history-more';
+  const MIN_MS = 90;
+  const pressAt = new WeakMap();
+  const pressed = new Set();
+  document.addEventListener('touchstart', e => {
+    const el = e.target.closest(SEL);
+    if (!el || el.disabled) return;
+    el.classList.add('pressing');
+    pressAt.set(el, Date.now());
+    pressed.add(el);
+  }, { passive: true });
+  document.addEventListener('touchend', () => {
+    pressed.forEach(el => {
+      const delay = Math.max(0, MIN_MS - (Date.now() - (pressAt.get(el) || 0)));
+      setTimeout(() => { el.classList.remove('pressing'); pressed.delete(el); }, delay);
+    });
+  });
+  document.addEventListener('touchcancel', () => {
+    pressed.forEach(el => el.classList.remove('pressing'));
+    pressed.clear();
+  });
+})();
+
+// ── Service Worker ────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .catch(e => console.error('SW failed', e));
+  });
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data?.type === 'VERSION') {
+      const el = document.getElementById('version-label');
+      const prev = el?.textContent;
+      if (el) {
+        el.textContent = e.data.version;
+        el.style.opacity = ''; // drop the "unconfirmed" dim once the SW reports the real version
+      }
+      if (prev && prev !== e.data.version) {
+        document.getElementById('update-banner')?.classList.add('visible');
+      }
+    }
+  });
+}
+
+</script>
+
+</body>
+</html>
