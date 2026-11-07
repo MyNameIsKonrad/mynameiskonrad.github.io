@@ -273,7 +273,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text);
   <div class="header">
     <div class="title">Medikinetics</div>
     <!-- Static fallback shown until SW broadcasts VERSION; kept in sync with sw.js VERSION by version-stamp.yml. -->
-    <div class="sub"><span id="version-label" style="opacity:.4">20260926.0015</span></div>
+    <div class="sub"><span id="version-label" style="opacity:.4">20261107.0020</span></div>
   </div>
 
   <div class="stats-row">
@@ -368,14 +368,15 @@ const concerta = mg => ({
 // MEDS keys are storage keys: loadPills drops doses whose type is missing, so a med that is
 // no longer taken stays here with `retired: true` (no dose button, history still renders).
 const MEDS = {
-  CON72: concerta(72),
-  CON36: concerta(36),
-  CON18: concerta(18),
+  // Concerta retired 2026-11-07
+  CON72: { ...concerta(72), retired: true },
+  CON36: { ...concerta(36), retired: true },
+  CON18: { ...concerta(18), retired: true },
   IRH: { label: 'IR',   sublabel: '5mg',           totalMg: 5,  color: '#5bb8f5', retired: true,
          phases: [{ offsetHours: 0, mg: 5,  durationHours: 4, ka: 2.0 }] },
   IR:  { label: 'IR',   sublabel: '10mg',          totalMg: 10, color: '#5bb8f5', retired: true,
          phases: [{ offsetHours: 0, mg: 10, durationHours: 4, ka: 2.0 }] },
-  CR:  { label: 'CR',   sublabel: '20mg',          totalMg: 20, color: '#9d7fd4', retired: true,
+  CR:  { label: 'Medikinet CR', shortLabel: 'CR', sublabel: '20mg', totalMg: 20, color: '#9d7fd4',
          phases:       [{ offsetHours: 0, mg: 10, durationHours: 4, ka: 2.0 },
                         { offsetHours: 4, mg: 10, durationHours: 4, ka: 0.7 }],
          // ka=1.0: judgment call — ER beads release early without food but bead matrix
@@ -386,7 +387,7 @@ const MEDS = {
   // It reports no overall bioavailability difference with/without food, but
   // not enough timing data for a separate food phase model. Delayed ka=0.7
   // is an app-level approximation, not a measured Symkinet constant.
-  SYMR20: { label: 'Symkinet MR', shortLabel: 'SYM', sublabel: '20mg', totalMg: 20, color: '#d4ad68', retired: true,
+  SYMR20: { label: 'Symkinet MR', shortLabel: 'SYM', sublabel: '20mg', totalMg: 20, color: '#d4ad68',
             phases: [{ offsetHours: 0, mg: 10, durationHours: 4, ka: 2.0 },
                      { offsetHours: 4, mg: 10, durationHours: 4, ka: 0.7 }] },
 };
@@ -1365,23 +1366,29 @@ function lastsSummaryHTML(dosesByDay) {
     if (rec[f.feel] == null) rec[f.feel] = f.at - d.takenAt;
     first.set(dayOf(d.takenAt), rec);
   }
-  const groups = new Map(); // day total mg → { days, [feel]: [ms, …] }
+  // Rows are what the day was: each med's short name (and, for a med with a food switch, how it was
+  // taken) with its mg, as the History strips write it, so CR fasted, CR food and SYM compare side by side (Decision #53)
+  const doseName = p => { const n = MEDS[p.type].shortLabel ?? MEDS[p.type].label; return hasFedToggle(p) ? `${n} ${p.fed ? 'food' : 'fasted'}` : n; };
+  const groups = new Map(); // day's mix label → { total, days, [feel]: [ms, …] }
   for (const [day, doses] of dosesByDay) {
     const current = doses.filter(p => !MEDS[p.type].retired);
     if (!current.length) continue;
+    const mgBy = new Map();
+    for (const p of current) mgBy.set(doseName(p), (mgBy.get(doseName(p)) ?? 0) + MEDS[p.type].totalMg);
+    const key = [...mgBy].sort((a, b) => a[0].localeCompare(b[0])).map(([n, mg]) => `${n}&nbsp;${mg}`).join(' + ');
     const total = current.reduce((s, p) => s + MEDS[p.type].totalMg, 0);
-    const g = groups.get(total) ?? { days: 0, ...Object.fromEntries(ACTIVE_FEELS.map(k => [k, []])) };
+    const g = groups.get(key) ?? { total, days: 0, ...Object.fromEntries(ACTIVE_FEELS.map(k => [k, []])) };
     g.days++;
     const rec = first.get(day) ?? {};
     for (const k of ACTIVE_FEELS) if (rec[k] != null) g[k].push(rec[k]);
-    groups.set(total, g);
+    groups.set(key, g);
   }
   if (![...groups.values()].some(g => ACTIVE_FEELS.some(k => g[k].length))) return '';
   const median = xs => { const s = [...xs].sort((a, b) => a - b), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
   const days = n => `${n} day${n === 1 ? '' : 's'}`;
-  const rows = [...groups.entries()].sort((a, b) => a[0] - b[0]).map(([mg, g]) => `
+  const rows = [...groups.entries()].sort((a, b) => a[1].total - b[1].total || a[0].localeCompare(b[0])).map(([label, g]) => `
     <tr>
-      <td>${mg} mg<span class="hist-n">${days(g.days)}</span></td>
+      <td>${label}<span class="hist-n">${days(g.days)}</span></td>
       ${ACTIVE_FEELS.map(k => g[k].length
         ? `<td>${durStr(Math.round(median(g[k]) / 60000) * 60000) ?? '0m'}<span class="hist-n">${days(g[k].length)}</span></td>`
         : `<td style="color:var(--muted)">—</td>`).join('')}

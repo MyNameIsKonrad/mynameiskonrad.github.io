@@ -3,7 +3,7 @@
 // Do not edit VERSION manually — .github/workflows/version-stamp.yml updates
 // both this constant and the #version-label fallback in index.html on every
 // push to main.
-const VERSION = 'medikinetics-20260926.0015';
+const VERSION = 'medikinetics-20261107.0020';
 const CACHE = VERSION;
 
 const APP_ROOT = self.registration.scope;
